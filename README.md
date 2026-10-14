@@ -144,34 +144,4 @@ git remote add origin https://github.com/<your-username>/<repo-name>.git
 git push -u origin main
 ```
 
-## Note on the JS port
 
-The browser port implements the same VTP model as `dynamics.m` (with
-`fdim = 1`, the default):
-
-- The Delaunay triangulation is a small built-in Bowyer–Watson implementation.
-  On a test configuration of 400 agents it produced exactly the same neighbor
-  sets as SciPy's Delaunay.
-- The speed governor is computed from the Delaunay neighbors rather than by
-  intersecting a ray with the Voronoi polygon. A Voronoi cell is the
-  intersection of the half-planes toward each Delaunay neighbor, so the
-  distance to the boundary along a direction is the minimum of
-  |d|² / (2 u·d) over neighbors with u·d > 0, and an unbounded cell gives
-  tanh(∞) = 1. This is the same quantity `voronoiProjectToBoundary.m` returns.
-  Repulsion, alignment, homing and the speed governor for one step matched an
-  independent NumPy/SciPy implementation to machine precision.
-- Initial conditions use a seeded generator with the same seeds as the MATLAB
-  script (2 and 18), but MATLAB's `rng` cannot be reproduced in JavaScript, so
-  the exact starting positions (and therefore trajectories) differ from
-  MATLAB's. The behavior is statistically the same.
-- The nearest static target is found by rounding the agent's position, taken
-  in the frame that moves with the field, to the rectangular lattice (exact, and much faster than scanning every lattice point).
-  I checked it against a brute-force scan on 2000 random points with zero
-  mismatches. The waveform `oscWave` was also checked to be exactly
-  `sin(2*pi*u)` at `n = 1`, and to spend `n/(n+1)` of the period on the outgoing
-  stroke.
-- In MATLAB the `Target` object is rebuilt every step (all components move with
-  the field), which replaces the single `setComponent` call used before.
-- Only `fdim = 1` is ported; the forward-area speed option (`fdim = 2`) is
-  MATLAB-only.
-- The MATLAB script was not run in MATLAB while it was being written.
